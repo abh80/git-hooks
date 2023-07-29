@@ -15,7 +15,8 @@ Execute the script using their relative paths `git-hooks/<script>.ps1`
 
 # Available scripts
 
-- Commit Message
+- **Commit Message**
+  
   Automatically formats your git commit message and commits them easily, also commits your each file separately.
 
   1. Stage the commits using `git add .` or individually `git add <some-file>`
