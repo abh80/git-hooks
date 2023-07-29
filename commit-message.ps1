@@ -3,17 +3,28 @@
 # then run this script
 
 function GetModifiedFiles {
-    git diff --cached --name-only # using git to get all staged commits
+    git diff --cached --name-status # using git to get all staged commits
 }
 
 function GenerateCommitMessage {
     param (
-        [string]$file
+        [string]$fileStatus
     )
 
+    $fileStatusParts = $fileStatus -split '\s+'
+    $status = $fileStatusParts[0]
+    $file = $fileStatusParts[1]
     $filename = Split-Path -Leaf $file
 
-    $prefix = "refactor($filename)"
+    $prefix = switch ($status) {
+        'M' { "refactor($filename)" }
+        'A' { "add($filename)" }
+        'D' { "remove($filename)" }
+        'T' { "refactor($filename)" }
+        'R' { "refactor($filename)" }
+        'C' { "copied($filename)" }
+        Default { Write-Host "Unknown file status: $status"; exit 1 }
+    }
     
     $message = Read-Host $prefix
 
@@ -27,15 +38,15 @@ if ($modifiedFiles.Count -eq 0) {
     exit 0
 }
 
-$commitMessage = @($modifiedFiles | ForEach-Object {
-        Write-Host "You will be asked to enter commit details"
+Write-Host "You will be asked to enter commit details"
 
+$commitMessage = @($modifiedFiles | ForEach-Object {
         GenerateCommitMessage $_
     })
 
 Write-Host "Generated commit message:"
 Write-Host "--------------------------"
-Write-Host $commitMessage
+Write-Host $($commitMessage -join "`n")
 
 $shallCommit = Read-Host "Commit the changes? (Y\n)"
 
@@ -43,10 +54,15 @@ if ($shallCommit -eq "n") {
     exit 0
 }
 else {
+    $filePaths = @($modifiedFiles | ForEach-Object {
+            $fileStatusParts = $_ -split '\s+'
+            return $fileStatusParts[1]
+        })
+
     try {
         Invoke-Expression "git reset" > $null # Unstage all the changes
-        for ($i = 0 ; $i -lt $modifiedFiles.Count ; $i++) {
-            $file = $modifiedFiles[$i]
+        for ($i = 0 ; $i -lt $filePaths.Count ; $i++) {
+            $file = $filePaths[$i]
             $cm = $commitMessage[$i]
             Invoke-Expression "git add `"$file`"" > $null
             Invoke-Expression "git commit -m `"$cm`"" > $null
