@@ -19,6 +19,6 @@ Execute the script using their relative paths `git-hooks/<script>.ps1`
   
   Automatically formats your git commit message and commits them easily, also commits your each file separately.
 
-  1. Stage the commits using `git add .` or individually `git add <some-file>`
+  1. Stage the changes using `git add .` or individually `git add <some-file>`
   2. Execute the script `./git-hooks/commmit-message.ps1`
   3. Everything required will be prompted next!
